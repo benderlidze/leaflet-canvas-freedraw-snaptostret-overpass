@@ -203,6 +203,39 @@
         var mousedown = false;
         var tooltype = 'draw';
 
+        // //Mousedown
+        // canvas.addEventListener('mousedown', function (e) {
+        //     last_mousex = mousex = parseInt(e.clientX - canvasx);
+        //     last_mousey = mousey = parseInt(e.clientY - canvasy);
+        //     mousedown = true;
+        // });
+
+        // //Mouseup
+        // canvas.addEventListener('mouseup', function (e) {
+        //     mousedown = false;
+        // });
+
+        // //Mousemove
+        // canvas.addEventListener('mousemove', function (e) {
+        //     mousex = parseInt(e.clientX - canvasx);
+        //     mousey = parseInt(e.clientY - canvasy);
+        //     if (mousedown) {
+        //         ctx.beginPath();
+        //         if (tooltype == 'draw') {
+        //             ctx.globalCompositeOperation = 'source-over';
+        //             ctx.strokeStyle = 'black';
+        //             ctx.lineWidth = 3;
+        //         }
+        //         ctx.moveTo(last_mousex, last_mousey);
+        //         ctx.lineTo(mousex, mousey);
+        //         ctx.lineJoin = ctx.lineCap = 'round';
+        //         ctx.stroke();
+        //     }
+        //     last_mousex = mousex;
+        //     last_mousey = mousey;
+        // });
+
+
         map.getContainer().append(canvas)
 
         const mouseDown = event => {
@@ -289,7 +322,7 @@
             'body' in document && document.body.addEventListener('mouseleave', mouseUp);
 
         };
-
+        
         map.on('mousedown touchstart', mouseDown);
     }
 
