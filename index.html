@@ -46,145 +46,21 @@
     L.tileLayer(TILE_URL).addTo(map);
 
 
-    var geojsonFeature = {
-        "type": "FeatureCollection",
-        "features": [
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": [
-                        [
-                            -0.09567975997924805,
-                            51.504922725092044
-                        ],
-                        [
-                            -0.09299755096435547,
-                            51.50468231156
-                        ],
-                        [
-                            -0.09003639221191406,
-                            51.50484258738895
-                        ],
-                        [
-                            -0.09168863296508789,
-                            51.50327987400937
-                        ],
-                        [
-                            -0.09312629699707031,
-                            51.50134310357631
-                        ],
-                        [
-                            -0.09443521499633788,
-                            51.50162360646046
-                        ],
-                        [
-                            -0.09563684463500977,
-                            51.50227810647596
-                        ],
-                        [
-                            -0.0960874557495117,
-                            51.502919240234235
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": [
-                        [
-                            -0.09306192398071289,
-                            51.51074568763141
-                        ],
-                        [
-                            -0.09432792663574219,
-                            51.50840857876848
-                        ],
-                        [
-                            -0.09505748748779297,
-                            51.507366857334006
-                        ],
-                        [
-                            -0.0953364372253418,
-                            51.50584429854758
-                        ],
-                        [
-                            -0.09529352188110352,
-                            51.50543026060529
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": [
-                        [
-                            -0.0914311408996582,
-                            51.5027589576403
-                        ],
-                        [
-                            -0.09119510650634766,
-                            51.503039451809734
-                        ],
-                        [
-                            -0.08825540542602539,
-                            51.50214453580767
-                        ],
-                        [
-                            -0.0886845588684082,
-                            51.50178389304767
-                        ],
-                        [
-                            -0.089263916015625,
-                            51.50074202015363
-                        ],
-                        [
-                            -0.09042263031005858,
-                            51.50100916932026
-                        ],
-                        [
-                            -0.0919032096862793,
-                            51.50108931376486
-                        ],
-                        [
-                            -0.09284734725952148,
-                            51.50079545011224
-                        ],
-                        [
-                            -0.09203195571899414,
-                            51.499499755957345
-                        ],
-                        [
-                            -0.08980035781860352,
-                            51.49757618329838
-                        ]
-                    ]
-                }
-            }
-        ]
-    };
+    let geojsonFeature = {}
 
-    const line = L.geoJSON(geojsonFeature).addTo(map);
-    console.log('line', line);
-
-
-    const path = Object.keys(line._layers).forEach(s => {
-        console.log('s', line._layers[s]);
-    })
 
     map.whenReady(draw)
-    map.dragging.disable();
+
 
     drawMode.addEventListener("click", () => {
         map.dragging.disable();
         mode = 'draw'
+
+        fetchData().then(i => {
+            console.log('i', i);
+            geojsonFeature = i;
+            L.geoJSON(geojsonFeature).addTo(map);
+        });
     })
     panMode.addEventListener("click", () => {
         map.dragging.enable();
@@ -309,24 +185,13 @@
 
         //51.50594279895568,-0.09964942932128906,51.50800625007593,-0.09805351495742798
         const query = `[out:json][timeout:25];(way["highway"](${bounds}););out body;>;out skel qt;`
-        console.log('query', query);
-        fetch('https://overpass-api.de/api/interpreter', {
+
+        return fetch('https://overpass-api.de/api/interpreter', {
             method: "POST",
             body: query
         })
             .then(response => response.json())
             .then(json => osmtogeojson(json))
-            .then(geojson => {
-                console.log('geojson', geojson);
-
-                var linesFeatureLayer = L.geoJSON(geojson, {
-                    style: {
-                        "color": "blue",
-                        "weight": 2,
-                        "opacity": 0.65
-                    }
-                }).addTo(map)
-            })
             .catch(e => {
                 alert(e)
             })
