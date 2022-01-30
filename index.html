@@ -5,6 +5,8 @@
     integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
     crossorigin=""></script>
 
+<script src="leaflet.geometryutil.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 
 <button id="drawMode">Draw mode</button>
 <button id="panMode">Map mode</button>
@@ -33,6 +35,7 @@
 
 <script>
 
+    const mainLine = []
     const drawMode = document.querySelector("#drawMode")
     const panMode = document.querySelector("#panMode")
 
@@ -86,16 +89,98 @@
                         ]
                     ]
                 }
+            },
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -0.09306192398071289,
+                            51.51074568763141
+                        ],
+                        [
+                            -0.09432792663574219,
+                            51.50840857876848
+                        ],
+                        [
+                            -0.09505748748779297,
+                            51.507366857334006
+                        ],
+                        [
+                            -0.0953364372253418,
+                            51.50584429854758
+                        ],
+                        [
+                            -0.09529352188110352,
+                            51.50543026060529
+                        ]
+                    ]
+                }
+            },
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -0.0914311408996582,
+                            51.5027589576403
+                        ],
+                        [
+                            -0.09119510650634766,
+                            51.503039451809734
+                        ],
+                        [
+                            -0.08825540542602539,
+                            51.50214453580767
+                        ],
+                        [
+                            -0.0886845588684082,
+                            51.50178389304767
+                        ],
+                        [
+                            -0.089263916015625,
+                            51.50074202015363
+                        ],
+                        [
+                            -0.09042263031005858,
+                            51.50100916932026
+                        ],
+                        [
+                            -0.0919032096862793,
+                            51.50108931376486
+                        ],
+                        [
+                            -0.09284734725952148,
+                            51.50079545011224
+                        ],
+                        [
+                            -0.09203195571899414,
+                            51.499499755957345
+                        ],
+                        [
+                            -0.08980035781860352,
+                            51.49757618329838
+                        ]
+                    ]
+                }
             }
         ]
     };
 
-    L.geoJSON(geojsonFeature).addTo(map);
+    const line = L.geoJSON(geojsonFeature).addTo(map);
+    console.log('line', line);
 
 
+    const path = Object.keys(line._layers).forEach(s => {
+        console.log('s', line._layers[s]);
+    })
 
     map.whenReady(draw)
-
+    map.dragging.disable();
 
     drawMode.addEventListener("click", () => {
         map.dragging.disable();
@@ -168,7 +253,18 @@
                 // Resolve the pixel point to the latitudinal and longitudinal equivalent.
                 const point = map.mouseEventToContainerPoint(event.originalEvent);
                 // Push each lat/lng value into the points set.
-                map.containerPointToLatLng(point)
+                const latlng = map.containerPointToLatLng(point)
+                // console.log('latlng', latlng);
+
+                var pt = turf.point([latlng.lng, latlng.lat]);
+                var snapped = turf.nearestPointOnLine(geojsonFeature, pt, { units: 'kilometers' });
+                // console.log('snapped', snapped);
+
+                if (snapped.properties.dist < 0.1) {
+                    mainLine.push(snapped.geometry.coordinates)
+                } else {
+                    mainLine.push([latlng.lng, latlng.lat])
+                }
 
                 mousex = point.x;
                 mousey = point.y;
@@ -195,6 +291,18 @@
                 map.off('mousemove', mouseMove);
                 'body' in document && document.body.removeEventListener('mouseleave', mouseUp);
                 // svg.selectAll('*').remove();
+
+                console.log('mainLine', mainLine);
+                const geo = turf.lineString(mainLine)
+                var myStyle = {
+                    "color": "red",
+                    "weight": 5,
+                    "opacity": 0.65
+                };
+                var linesFeatureLayer = L.geoJSON(geo, {
+                    style: myStyle
+                }).addTo(map)
+
             };
 
             // Clear up the events when the user releases the mouse.
@@ -208,32 +316,4 @@
 
 
 
-    function calcClosestPtOnSegment(x0, y0, x1, y1, cx, cy, cr) {
-
-        // calc delta distance: source point to line start
-        var dx = cx - x0;
-        var dy = cy - y0;
-
-        // calc delta distance: line start to end
-        var dxx = x1 - x0;
-        var dyy = y1 - y0;
-
-        // Calc position on line normalized between 0.00 & 1.00
-        // == dot product divided by delta line distances squared
-        var t = (dx * dxx + dy * dyy) / (dxx * dxx + dyy * dyy);
-
-        // calc nearest pt on line
-        var x = x0 + dxx * t;
-        var y = y0 + dyy * t;
-
-        // clamp results to being on the segment
-        if (t < 0) { x = x0; y = y0; }
-        if (t > 1) { x = x1; y = y1; }
-
-        return ({
-            x: x, y: y,
-            isColliding: ((cx - x) * (cx - x) + (cy - y) * (cy - y)) < cr * cr,
-            isOnSegment: (t >= 0 && t <= 1),
-        });
-    }
 </script>
