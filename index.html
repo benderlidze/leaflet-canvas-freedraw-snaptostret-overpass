@@ -1,0 +1,151 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+
+
+<div id="map"></div>
+<canvas id="canvas" width="800" height="500"></canvas>
+
+<style>
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+    }
+
+    .leaflet-container {
+        height: 400px;
+        width: 600px;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    canvas {
+        cursor: crosshair;
+        border: 1px solid #000000;
+    }
+</style>
+
+<script>
+
+
+    const LAT_LNG = [51.505, -0.09];
+    const TILE_URL = 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png';
+
+    const map = new L.Map(document.querySelector('#map'), { doubleClickZoom: false }).setView(LAT_LNG, 14);
+    L.tileLayer(TILE_URL).addTo(map);
+
+    map.whenReady(draw)
+
+    function draw() {
+
+        //Canvas
+        var canvas = document.getElementById('canvas');
+        canvas.style.position = 'relative'
+        canvas.style.zIndex = '1001'
+        canvas.style.pointerEvents = 'none'
+
+
+        var ctx = canvas.getContext('2d');
+
+        ctx.beginPath();       // Начинает новый путь
+        ctx.moveTo(30, 50);    // Передвигает перо в точку (30, 50)
+        ctx.lineTo(150, 100);  // Рисует линию до точки (150, 100)
+        ctx.stroke();          // Отображает путь
+
+        //Variables
+        var canvasx = canvas.offsetLeft;
+        var canvasy = canvas.offsetTop;
+        var last_mousex = last_mousey = 0;
+        var mousex = mousey = 0;
+        var mousedown = false;
+        var tooltype = 'draw';
+
+        //Mousedown
+        canvas.addEventListener('mousedown', function (e) {
+            last_mousex = mousex = parseInt(e.clientX - canvasx);
+            last_mousey = mousey = parseInt(e.clientY - canvasy);
+            mousedown = true;
+        });
+
+        //Mouseup
+        canvas.addEventListener('mouseup', function (e) {
+            mousedown = false;
+        });
+
+        //Mousemove
+        canvas.addEventListener('mousemove', function (e) {
+            mousex = parseInt(e.clientX - canvasx);
+            mousey = parseInt(e.clientY - canvasy);
+            if (mousedown) {
+                ctx.beginPath();
+                if (tooltype == 'draw') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 3;
+                }
+                ctx.moveTo(last_mousex, last_mousey);
+                ctx.lineTo(mousex, mousey);
+                ctx.lineJoin = ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+            last_mousex = mousex;
+            last_mousey = mousey;
+        });
+
+
+        map.getContainer().append(canvas)
+
+
+        const mouseDown = event => {
+
+            const mouseMove = event => {
+
+                // Resolve the pixel point to the latitudinal and longitudinal equivalent.
+                const point = map.mouseEventToContainerPoint(event.originalEvent);
+                // Push each lat/lng value into the points set.
+                map.containerPointToLatLng(point)
+
+                console.log('point', point);
+
+                mousex = point.x;
+                mousey = point.y;
+
+                ctx.beginPath();
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 3;
+                ctx.moveTo(last_mousex, last_mousey);
+                ctx.lineTo(mousex, mousey);
+                ctx.lineJoin = ctx.lineCap = 'round';
+                ctx.stroke();
+                //lineIterator(new Point(point.x, point.y));
+                last_mousex = mousex;
+                last_mousey = mousey;
+            };
+
+            // Create the path when the user moves their cursor.
+            map.on('mousemove touchmove', mouseMove);
+
+            const mouseUp = (_, create = true) => {
+                // Stop listening to the events.
+                map.off('mouseup', mouseUp);
+                map.off('mousemove', mouseMove);
+                'body' in document && document.body.removeEventListener('mouseleave', mouseUp);
+                // svg.selectAll('*').remove();
+            };
+
+            // Clear up the events when the user releases the mouse.
+            map.on('mouseup touchend', mouseUp);
+            'body' in document && document.body.addEventListener('mouseleave', mouseUp);
+
+        };
+
+        map.on('mousedown touchstart', mouseDown);
+    }
+
+
+</script>

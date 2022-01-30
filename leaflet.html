@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>Quick Start - Leaflet</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+    <script src="https://rawgit.com/Wildhoney/Leaflet.FreeDraw/master/dist/leaflet-freedraw.iife.js"></script>
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        .leaflet-container {
+            height: 400px;
+            width: 600px;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .map {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .map.mode-create {
+            cursor: crosshair;
+        }
+
+        .leaflet-edge {
+            background-color: #95bc59;
+            box-shadow: 0 0 0 2px white, 0 0 10px rgba(0, 0, 0, .35);
+            border-radius: 50%;
+            cursor: move;
+            outline: none;
+            transition: background-color .25s;
+        }
+
+        .leaflet-polygon {
+            fill: #b4cd8a;
+            stroke: #50622b;
+            stroke-width: 2;
+            fill-opacity: .75;
+        }
+    </style>
+
+    <section class="map"></section>
+
+    <script>
+
+        const LAT_LNG = [51.505, -0.09];
+        const TILE_URL = 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png';
+
+        const map = new L.Map(document.querySelector('section.map'), { doubleClickZoom: false }).setView(LAT_LNG, 14);
+        L.tileLayer(TILE_URL).addTo(map);
+        var createFreeDraw = new FreeDraw({
+            mode: FreeDraw.NONE | FreeDraw.CREATE | FreeDraw.EDIT,
+            fillOpacity: 0.5,
+            fillColor: 'yellow',
+        });
+        map.addLayer(createFreeDraw);
+
+    </script>
