@@ -5,7 +5,6 @@
     integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
     crossorigin=""></script>
 
-<script src="leaflet.geometryutil.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 
 <button id="drawMode">Draw mode</button>
@@ -302,7 +301,21 @@
                 var linesFeatureLayer = L.geoJSON(geo, {
                     style: myStyle
                 }).addTo(map)
+                console.log('geo', geo);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+
+
+                var options = { tolerance: 0.00001, highQuality: true };
+                var simplified = turf.simplify(geo, options);
+                console.log('simplified', simplified);
+                var linesFeatureLayer = L.geoJSON(simplified, {
+                    style: {
+                        "color": "green",
+                        "weight": 5,
+                        "opacity": 0.65
+                    }
+                }).addTo(map)
             };
 
             // Clear up the events when the user releases the mouse.
@@ -310,6 +323,7 @@
             'body' in document && document.body.addEventListener('mouseleave', mouseUp);
 
         };
+
 
         map.on('mousedown touchstart', mouseDown);
     }
