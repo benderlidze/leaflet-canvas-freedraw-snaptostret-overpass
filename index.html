@@ -9,7 +9,7 @@
 <button id="drawMode">Draw mode</button>
 <button id="panMode">Map mode</button>
 <div id="map"></div>
-<canvas id="canvas" width="800" height="500"></canvas>
+<canvas id="canvas" width="1000" height="1000"></canvas>
 
 <style>
     html,
@@ -19,8 +19,8 @@
     }
 
     .leaflet-container {
-        height: 400px;
-        width: 600px;
+        height: 1000px;
+        width: 1000px;
         max-width: 100%;
         max-height: 100%;
     }
@@ -39,8 +39,60 @@
     const LAT_LNG = [51.505, -0.09];
     const TILE_URL = 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png';
 
-    const map = new L.Map(document.querySelector('#map'), { doubleClickZoom: false }).setView(LAT_LNG, 14);
+    const map = new L.Map(document.querySelector('#map'), { doubleClickZoom: false }).setView(LAT_LNG, 16);
     L.tileLayer(TILE_URL).addTo(map);
+
+
+    var geojsonFeature = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -0.09567975997924805,
+                            51.504922725092044
+                        ],
+                        [
+                            -0.09299755096435547,
+                            51.50468231156
+                        ],
+                        [
+                            -0.09003639221191406,
+                            51.50484258738895
+                        ],
+                        [
+                            -0.09168863296508789,
+                            51.50327987400937
+                        ],
+                        [
+                            -0.09312629699707031,
+                            51.50134310357631
+                        ],
+                        [
+                            -0.09443521499633788,
+                            51.50162360646046
+                        ],
+                        [
+                            -0.09563684463500977,
+                            51.50227810647596
+                        ],
+                        [
+                            -0.0960874557495117,
+                            51.502919240234235
+                        ]
+                    ]
+                }
+            }
+        ]
+    };
+
+    L.geoJSON(geojsonFeature).addTo(map);
+
+
 
     map.whenReady(draw)
 
@@ -155,4 +207,33 @@
     }
 
 
+
+    function calcClosestPtOnSegment(x0, y0, x1, y1, cx, cy, cr) {
+
+        // calc delta distance: source point to line start
+        var dx = cx - x0;
+        var dy = cy - y0;
+
+        // calc delta distance: line start to end
+        var dxx = x1 - x0;
+        var dyy = y1 - y0;
+
+        // Calc position on line normalized between 0.00 & 1.00
+        // == dot product divided by delta line distances squared
+        var t = (dx * dxx + dy * dyy) / (dxx * dxx + dyy * dyy);
+
+        // calc nearest pt on line
+        var x = x0 + dxx * t;
+        var y = y0 + dyy * t;
+
+        // clamp results to being on the segment
+        if (t < 0) { x = x0; y = y0; }
+        if (t > 1) { x = x1; y = y1; }
+
+        return ({
+            x: x, y: y,
+            isColliding: ((cx - x) * (cx - x) + (cy - y) * (cy - y)) < cr * cr,
+            isOnSegment: (t >= 0 && t <= 1),
+        });
+    }
 </script>
