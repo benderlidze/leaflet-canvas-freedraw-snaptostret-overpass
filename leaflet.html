@@ -71,6 +71,8 @@
         }
     </style>
 
+    <button style="z-index:1000;position:absolute;left:50px;top:50px;" onclick="createFreeDraw.mode(0)">MODE 0</button>
+    <button style="z-index:1000;position:absolute;left:50px;top:70px;" onclick="createFreeDraw.mode(1)">MODE 1</button>
     <section class="map"></section>
 
     <script>
@@ -86,5 +88,7 @@
             fillColor: 'yellow',
         });
         map.addLayer(createFreeDraw);
+
+        createFreeDraw
 
     </script>

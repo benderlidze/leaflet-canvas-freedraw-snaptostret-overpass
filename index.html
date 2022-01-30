@@ -6,6 +6,8 @@
     crossorigin=""></script>
 
 
+<button id="drawMode">Draw mode</button>
+<button id="panMode">Map mode</button>
 <div id="map"></div>
 <canvas id="canvas" width="800" height="500"></canvas>
 
@@ -31,6 +33,8 @@
 
 <script>
 
+    const drawMode = document.querySelector("#drawMode")
+    const panMode = document.querySelector("#panMode")
 
     const LAT_LNG = [51.505, -0.09];
     const TILE_URL = 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png';
@@ -40,6 +44,14 @@
 
     map.whenReady(draw)
 
+
+    drawMode.addEventListener("click", () => {
+        map.dragging.disable();
+    })
+    panMode.addEventListener("click", () => {
+        map.dragging.enable();
+    })
+
     function draw() {
 
         //Canvas
@@ -47,15 +59,7 @@
         canvas.style.position = 'relative'
         canvas.style.zIndex = '1001'
         canvas.style.pointerEvents = 'none'
-
-
         var ctx = canvas.getContext('2d');
-
-        ctx.beginPath();       // Начинает новый путь
-        ctx.moveTo(30, 50);    // Передвигает перо в точку (30, 50)
-        ctx.lineTo(150, 100);  // Рисует линию до точки (150, 100)
-        ctx.stroke();          // Отображает путь
-
         //Variables
         var canvasx = canvas.offsetLeft;
         var canvasy = canvas.offsetTop;
@@ -64,43 +68,48 @@
         var mousedown = false;
         var tooltype = 'draw';
 
-        //Mousedown
-        canvas.addEventListener('mousedown', function (e) {
-            last_mousex = mousex = parseInt(e.clientX - canvasx);
-            last_mousey = mousey = parseInt(e.clientY - canvasy);
-            mousedown = true;
-        });
+        // //Mousedown
+        // canvas.addEventListener('mousedown', function (e) {
+        //     last_mousex = mousex = parseInt(e.clientX - canvasx);
+        //     last_mousey = mousey = parseInt(e.clientY - canvasy);
+        //     mousedown = true;
+        // });
 
-        //Mouseup
-        canvas.addEventListener('mouseup', function (e) {
-            mousedown = false;
-        });
+        // //Mouseup
+        // canvas.addEventListener('mouseup', function (e) {
+        //     mousedown = false;
+        // });
 
-        //Mousemove
-        canvas.addEventListener('mousemove', function (e) {
-            mousex = parseInt(e.clientX - canvasx);
-            mousey = parseInt(e.clientY - canvasy);
-            if (mousedown) {
-                ctx.beginPath();
-                if (tooltype == 'draw') {
-                    ctx.globalCompositeOperation = 'source-over';
-                    ctx.strokeStyle = 'black';
-                    ctx.lineWidth = 3;
-                }
-                ctx.moveTo(last_mousex, last_mousey);
-                ctx.lineTo(mousex, mousey);
-                ctx.lineJoin = ctx.lineCap = 'round';
-                ctx.stroke();
-            }
-            last_mousex = mousex;
-            last_mousey = mousey;
-        });
+        // //Mousemove
+        // canvas.addEventListener('mousemove', function (e) {
+        //     mousex = parseInt(e.clientX - canvasx);
+        //     mousey = parseInt(e.clientY - canvasy);
+        //     if (mousedown) {
+        //         ctx.beginPath();
+        //         if (tooltype == 'draw') {
+        //             ctx.globalCompositeOperation = 'source-over';
+        //             ctx.strokeStyle = 'black';
+        //             ctx.lineWidth = 3;
+        //         }
+        //         ctx.moveTo(last_mousex, last_mousey);
+        //         ctx.lineTo(mousex, mousey);
+        //         ctx.lineJoin = ctx.lineCap = 'round';
+        //         ctx.stroke();
+        //     }
+        //     last_mousex = mousex;
+        //     last_mousey = mousey;
+        // });
 
 
         map.getContainer().append(canvas)
 
-
         const mouseDown = event => {
+
+            const point = map.mouseEventToContainerPoint(event.originalEvent);
+            map.containerPointToLatLng(point)
+            last_mousex = point.x
+            last_mousey = point.y
+
 
             const mouseMove = event => {
 
@@ -108,8 +117,6 @@
                 const point = map.mouseEventToContainerPoint(event.originalEvent);
                 // Push each lat/lng value into the points set.
                 map.containerPointToLatLng(point)
-
-                console.log('point', point);
 
                 mousex = point.x;
                 mousey = point.y;
