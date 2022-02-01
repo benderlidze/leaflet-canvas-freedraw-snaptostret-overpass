@@ -45,12 +45,9 @@
     const map = new L.Map(document.querySelector('#map'), { doubleClickZoom: false }).setView(LAT_LNG, 16);
     L.tileLayer(TILE_URL).addTo(map);
 
-
     let geojsonFeature = {}
 
-
     map.whenReady(draw)
-
 
     drawMode.addEventListener("click", () => {
         map.dragging.disable();
@@ -177,15 +174,10 @@
 
 
     function fetchData() {
-
-
         const SW = map.getBounds().getSouthWest()
         const NE = map.getBounds().getNorthEast()
         const bounds = `${SW.lat},${SW.lng},${NE.lat},${NE.lng}`
-
-        //51.50594279895568,-0.09964942932128906,51.50800625007593,-0.09805351495742798
         const query = `[out:json][timeout:25];(way["highway"](${bounds}););out body;>;out skel qt;`
-
         return fetch('https://overpass-api.de/api/interpreter', {
             method: "POST",
             body: query
@@ -195,6 +187,5 @@
             .catch(e => {
                 alert(e)
             })
-
     }
 </script>
