@@ -21,6 +21,8 @@ class DrawStreets {
         this.geojsonFeature = {}
         this.map = {}
         this.simplifiedLine = {}
+
+        this.drawnItems = {}
     }
 
     init() {
@@ -36,6 +38,64 @@ class DrawStreets {
         this.map = new L.Map(document.querySelector(this.mapContainer), { doubleClickZoom: false })
             .setView(LAT_LNG, 18);
         L.tileLayer(TILE_URL).addTo(this.map);
+
+        //edit controls
+        this.drawnItems = new L.FeatureGroup();
+        this.map.addLayer(this.drawnItems);
+        var drawControl = new L.Control.Draw({
+            position: 'topright',
+            draw: {
+                polygon: {
+                    shapeOptions: {
+                        color: 'purple'
+                    },
+                    allowIntersection: false,
+                    drawError: {
+                        color: 'orange',
+                        timeout: 1000
+                    },
+                    showArea: true,
+                    metric: false,
+                    repeatMode: true
+                },
+                polyline: {
+                    shapeOptions: {
+                        color: 'red'
+                    },
+                },
+                rect: {
+                    shapeOptions: {
+                        color: 'green'
+                    },
+                },
+                circle: {
+                    shapeOptions: {
+                        color: 'steelblue'
+                    },
+                },
+
+            },
+            edit: {
+                featureGroup: this.drawnItems
+            }
+        });
+        this.map.addControl(drawControl);
+        this.map.on('draw:created', function (e) {
+            var type = e.layerType,
+                layer = e.layer;
+
+            this.drawnItems.addLayer(layer);
+        });
+
+        this.map.on("draw:editstop", (e) => {
+            let layers = e.layers;
+            console.log('draw:editstop', e, layers);
+            console.log('this.drawnItems', this.drawnItems);
+
+            this.saveData(this.drawnItems.toGeoJSON())
+        });
+
+
 
         this.map.whenReady(() => this.draw())
 
@@ -202,13 +262,15 @@ class DrawStreets {
                 console.log(json)
 
                 this.simplifiedLine = json;
-                L.geoJSON(json, {
+                const loadedLayer = L.geoJSON(json, {
                     style: {
                         "color": "green",
                         "weight": 5,
                         "opacity": 0.65
                     }
                 }).addTo(this.map)
+                console.log('loadedLayer', loadedLayer);
+                this.drawnItems.addLayer(loadedLayer.getLayers()[0]);
             })
             .catch(e => {
                 alert(e)
