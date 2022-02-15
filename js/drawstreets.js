@@ -3,7 +3,10 @@ class DrawStreets {
         mapContainer,
         canvasContainer,
         drawModeButton,
-        panModeButton
+        panModeButton,
+        editModeButton,
+        saveButton,
+        loadButton
     }) {
 
         this.mode = 'pan'
@@ -11,14 +14,21 @@ class DrawStreets {
         this.canvasContainer = canvasContainer
         this.drawModeButton = drawModeButton
         this.panModeButton = panModeButton
+        this.editModeButton = editModeButton
+        this.saveButton = saveButton
+        this.loadButton = loadButton
+
         this.geojsonFeature = {}
         this.map = {}
+        this.simplifiedLine = {}
     }
 
     init() {
 
         const drawMode = document.querySelector(this.drawModeButton)
         const panMode = document.querySelector(this.panModeButton)
+        const saveData = document.querySelector(this.saveButton)
+        const loadData = document.querySelector(this.loadButton)
 
         const LAT_LNG = [43.66005063334696, -79.4586181640625];
         const TILE_URL = 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png';
@@ -40,6 +50,16 @@ class DrawStreets {
         panMode.addEventListener("click", () => {
             this.map.dragging.enable();
             this.mode = 'pan'
+        })
+
+        saveData.addEventListener("click", () => {
+            console.log('SAVE DATA');
+            console.log('this.geojsonFeature', this.simplifiedLine);
+            this.saveData(this.simplifiedLine)
+        })
+
+        loadData.addEventListener("click", () => {
+            this.loadData()
         })
     }
 
@@ -130,7 +150,7 @@ class DrawStreets {
 
                 var options = { tolerance: 0.00001, highQuality: true };
                 var simplifiedLine = turf.simplify(geo, options);
-                var linesFeatureLayer = L.geoJSON(simplifiedLine, {
+                var simplifiedLineLayer = L.geoJSON(simplifiedLine, {
                     style: {
                         "color": "green",
                         "weight": 5,
@@ -138,6 +158,7 @@ class DrawStreets {
                     }
                 }).addTo(this.map)
 
+                this.simplifiedLine = simplifiedLine
                 //SEND THIS "simplifiedLine" to server 
 
 
@@ -149,6 +170,50 @@ class DrawStreets {
         this.map.on('mousedown touchstart', mouseDown);
     }
 
+    saveData(data) {
+        const query = {
+            action: 'save',
+            data: data
+        }
+        return fetch('https://serg.one/save-load-data/index.php', {
+            method: "POST",
+            body: JSON.stringify(query)
+        })
+            .then(response => response.json())
+            .then(json => {
+                alert(json.result)
+                console.log(json.result)
+            })
+            .catch(e => {
+                alert(e)
+            })
+    }
+
+    loadData() {
+        const query = {
+            action: 'load',
+        }
+        return fetch('https://serg.one/save-load-data/index.php', {
+            method: "POST",
+            body: JSON.stringify(query)
+        })
+            .then(response => response.json())
+            .then(json => {
+                console.log(json)
+
+                this.simplifiedLine = json;
+                L.geoJSON(json, {
+                    style: {
+                        "color": "green",
+                        "weight": 5,
+                        "opacity": 0.65
+                    }
+                }).addTo(this.map)
+            })
+            .catch(e => {
+                alert(e)
+            })
+    }
 
     fetchData() {
         const SW = this.map.getBounds().getSouthWest()
